@@ -15,6 +15,7 @@ A collection of fine-tuning pipelines and evaluation tooling for NLP models (BER
     - [BERT (classification)](#bert-classification)
     - [T5 (seq2seq / summarization / headline generation)](#t5-seq2seq--summarization--headline-generation)
     - [GPT-2 (headline generation)](#gpt-2-headline-generation)
+    - [Using Fine-Tuned Version of GPT2 as a chat bot.](#using-fine-tuned-version-of-gpt2-as-a-chat-bot)
   - [Evaluation metrics and scripts](#evaluation-metrics-and-scripts)
     - [Perplexity / loss (GPT-2)](#perplexity--loss-gpt-2)
     - [ROUGE (T5)](#rouge-t5)
@@ -40,38 +41,50 @@ pip install torch transformers pandas scikit-learn rouge-score nltk textblob con
 ## Project structure
 
 ```txt
-
+├── chat.py
 ├── data
-│   ├── cnbc_headlines.csv
-│   ├── guardian_headlines.csv
-│   ├── predictions.csv
-│   └── reuters_headlines.csv
-├── src
-│   ├── bert
-│   │   ├── dataset
-│   │   ├── eval
-│   │   ├── model
-│   │  
-│   │   ├── utils
-│   │   ├── config.py
-│   │   ├── __init__.py
-│   │   └── run.py
-│   ├── gpt2
-│   │   ├── dataset
-│   │   ├── eval
-│   │   ├── __pycache__
-│   │   ├── config.py
-│   │   ├── helpers.py
-│   │   ├── __init__.py
-│   │   └── run.py
-│   └── t5
-│       ├── dataset
-│       ├── evaluate
-│       ├── train
-│       ├── config.py
-│       └── __init__.py
-├── README.md
-└── requirements.txt
+└── src
+    ├── bert
+    │   ├── config.py
+    │   ├── dataset
+    │   │   ├── custom_dataset.py
+    │   │   └── __init__.py
+    │   ├── eval
+    │   │   ├── __init__.py
+    │   │   └── train_eval_epoch.py
+    │   ├── __init__.py
+    │   ├── model
+    │   │   ├── bert.py
+    │   │   └── __init__.py
+    │   ├── run.py
+    │   └── utils
+    │       ├── __init__.py
+    │       └── processing.py
+    ├── gpt2
+    │   ├── config.py
+    │   ├── dataset
+    │   │   ├── custom_dataset.py
+    │   │   └── __init__.py
+    │   ├── eval
+    │   │   ├── generate.py
+    │   │   └── train_eval_epoch.py
+    │   ├── helpers.py
+    │   ├── __init__.py
+    │   ├── models
+    │   └── run.py
+    └── t5
+        ├── config.py
+        ├── dataset
+        │   ├── custom_dataset.py
+        │   └── __init__.py
+        ├── evaluate
+        │   ├── eval.py
+        │   └── __init__.py
+        ├── __init__.py
+        └── train
+            ├── epochs.py
+            ├── __init__.py
+            └── trainer.py
 ```
 
 
@@ -138,6 +151,15 @@ Important:
 - GPT-2 needs a `pad_token` configured (common pattern: `tokenizer.pad_token = tokenizer.eos_token` and set `model.config.pad_token_id = tokenizer.pad_token_id`) — this is already used in helpers.
 
 ---
+
+### Using Fine-Tuned Version of GPT2 as a chat bot.
+Make sure requirements and python .venv is installed and then do the following in your terminal:
+```bash
+python3 chat.py
+```
+Be careful to not act like this is a ground breaking thing. Ths is just a bunch of Rutgers headlines fine-tuned on top of GPT2.
+
+--- 
 
 ## Evaluation metrics and scripts
 
