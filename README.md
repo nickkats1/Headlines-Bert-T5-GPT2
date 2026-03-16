@@ -15,7 +15,6 @@ A collection of fine-tuning pipelines and evaluation tooling for NLP models (BER
     - [BERT (classification)](#bert-classification)
     - [T5 (seq2seq / summarization / headline generation)](#t5-seq2seq--summarization--headline-generation)
     - [GPT-2 (headline generation)](#gpt-2-headline-generation)
-    - [Using Fine-Tuned Version of GPT2 as a chat bot.](#using-fine-tuned-version-of-gpt2-as-a-chat-bot)
   - [Evaluation metrics and scripts](#evaluation-metrics-and-scripts)
     - [Perplexity / loss (GPT-2)](#perplexity--loss-gpt-2)
     - [ROUGE (T5)](#rouge-t5)
@@ -41,7 +40,7 @@ pip install torch transformers pandas scikit-learn rouge-score nltk textblob con
 ## Project structure
 
 ```txt
-├── chat.py
+
 ├── data
 └── src
     ├── bert
@@ -149,15 +148,6 @@ What to check:
 Important:
 - Ensure tokenizer and model saved files exist in `src/gpt2/models/` (HuggingFace saves `config.json`, `pytorch_model.bin` or `model.safetensors`, and tokenizer files).
 - GPT-2 needs a `pad_token` configured (common pattern: `tokenizer.pad_token = tokenizer.eos_token` and set `model.config.pad_token_id = tokenizer.pad_token_id`) — this is already used in helpers.
-
----
-
-### Using Fine-Tuned Version of GPT2 as a chat bot.
-Make sure requirements and python .venv is installed and then do the following in your terminal:
-```bash
-python3 chat.py
-```
-Be careful to not act like this is a ground breaking thing. Ths is just a bunch of Rutgers headlines fine-tuned on top of GPT2.
 
 --- 
 
