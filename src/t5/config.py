@@ -1,13 +1,11 @@
-"""Configuration for T5"""
-
-MODEL_NAME = "t5-base"
-TRAIN_BATCH_SIZE = 8
-VALID_BATCH_SIZE = 8
-TRAIN_EPOCHS = 2
-LEARNING_RATE = 2e-4
-MAX_SOURCE_TEXT_LENGTH = 228
-MAX_TARGET_TEXT_LENGTH = 128
-SEED = 42
-SOURCE_PREFIX = "summarize: "
-DATA_PATH = "data/cnbc_headlines.csv"
-OUTPUT_DIR = "models/t5"
+model_params = {
+    "MAX_SOURCE_TEXT_LENGTH": 128,
+    "MAX_TARGET_TEXT_LENGTH": 32,
+    "TRAIN_BATCH_SIZE": 12,
+    "VALID_BATCH_SIZE": 12,
+    "TRAIN_EPOCHS": 2,
+    "VAL_EPOCHS": 2,
+    "MODEL": "t5-base",
+    "LEARNING_RATE": 5e-5,
+    "SEED": 42
+}

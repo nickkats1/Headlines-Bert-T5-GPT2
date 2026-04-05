@@ -1,11 +1,10 @@
-"""GPT2 Config"""
+import os
+from pathlib import Path
 
-MODEL_NAME = "gpt2"
-BATCH_SIZE = 12
-EPOCHS = 3
-LEARNING_RATE = 5e-5
-MAX_LENGTH = 128
-SEED = 42
-DATA_PATH = "data/guardian_headlines.csv"
-OUTPUT_DIR = "src/gpt2/models/"
-DEVICE = "cuda:0"
+MODEL_NAME: str = "gpt2"
+EPOCHS: int = 3
+LEARNING_RATE: float = 5e-5
+DATA_PATH: os.PathLike = Path("data/reuters_headlines.csv")
+MAX_LENGTH: int = 128
+BATCH_SIZE: int = 12
+DEVICE: str = "cuda"

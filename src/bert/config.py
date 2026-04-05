@@ -1,8 +1,14 @@
-"""Bert Config"""
+import os
+import pathlib
 
-bert_config = {
-    "model_name": "bert-base-uncased",
-    "data_path": "data/guardian_headlines.csv",
-    "max_length": 80,
-    "device": "cuda:0",
-}
+MODEL_NAME: str = "bert-base-uncased"
+EPOCHS: int = 4
+LEARNING_RATE: float = 2e-5
+DATA_PATH: os.PathLike = pathlib.Path("data/guardian_headlines.csv")
+MAX_LENGTH: int = 80
+BATCH_SIZE: int = 12
+DEVICE: str = "cuda"
+TEST_SIZE: float = 0.20
+
+
+
