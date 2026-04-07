@@ -22,7 +22,7 @@ class TestUtils:
         
         actual = polarity(text)
         
-        assert actual > float(0.0)
+        assert actual > 0.0
         
     def test_polarity_negative(self):
         """Test polarity is less than 0.0"""
@@ -31,7 +31,7 @@ class TestUtils:
         
         actual = polarity(text)
         
-        assert actual < float(0.0)
+        assert actual < 0.0
         
     def test_polarity_neutral(self):
         """test polarity returns neutral score"""
@@ -40,7 +40,7 @@ class TestUtils:
         
         actual = polarity(text)
         
-        assert actual == float(0.0)
+        assert actual == 0.0
 
 
 class TestSentiment:
@@ -97,9 +97,9 @@ class TestUtilsDf:
         
         assert "polarity" in sample_data.columns
         
-        assert sample_data['polarity'][0] == float(0.0)
+        assert sample_data['polarity'][0] == 0.0
         
-        assert sample_data['polarity'][1] > float(0.0)
+        assert sample_data['polarity'][1] > 0.0
         
         
     def test_sentiment(self, sample_data):
@@ -112,7 +112,7 @@ class TestUtilsDf:
         
         
         assert sample_data['sentiment'][0] == "Neutral"
-        assert sample_data['polarity'][0] == float(0.0)
+        assert sample_data['polarity'][0] == 0.0
         
         assert sample_data['sentiment'][1] == "Positive"
         

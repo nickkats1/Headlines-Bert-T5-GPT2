@@ -11,5 +11,6 @@ __pycache__/
 # ignore mypy_cache
 *.mypy_cache
 
-
+# ignore .vscode
+.vscode
 

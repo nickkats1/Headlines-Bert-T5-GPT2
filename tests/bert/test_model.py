@@ -33,7 +33,7 @@ class TestBertModel:
     def test_dropout(self, bert_classifier):
         """test dropout is set"""
         assert isinstance(bert_classifier.drop, nn.Dropout)
-        assert bert_classifier.drop.p == float(0.3)
+        assert bert_classifier.drop.p == 0.3
         
     def test_output(self, bert_classifier):
         """test output is set"""

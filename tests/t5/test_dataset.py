@@ -1,113 +1,57 @@
 import pytest
-import pandas as pd
-from transformers import T5ForConditionalGeneration, T5Tokenizer
+from transformers import T5Tokenizer
 
-from torch.utils.data import Dataset
 
-class CustomDataset(Dataset):
-    """Dataset that tokenizes source-target text pairs for T5.
+from src.t5.preprocess import load_data
+from src.t5.config import SOURCE_LENGTH, TARGET_LENGTH, MODEL_NAME
+from src.t5.dataset import CustomDataset
 
-    Takes a dataframe with source and target text columns, tokenizes both
-    using the provided T5 tokenizer, and returns padded/truncated tensors
-    ready for encoder-decoder training.
-
-    Attributes:
-        tokenizer: HuggingFace T5 tokenizer.
-        data: Pandas DataFrame containing source and target text.
-        source_len: Maximum token length for source (encoder) sequences.
-        target_len: Maximum token length for target (decoder) sequences.
-        source_text: Series of source text strings.
-        target_text: Series of target text strings.
-    """
-
-    def __init__(self, dataframe, tokenizer, source_len, target_len, source_col, target_col):
-        """Initialize the dataset with a dataframe and tokenizer.
-
-        Args:
-            dataframe: Pandas DataFrame containing the text data.
-            tokenizer: HuggingFace T5 tokenizer for encoding text.
-            source_len: Maximum token length for source sequences.
-            target_len: Maximum token length for target sequences.
-            source_col: Column name for source (input) text in the dataframe.
-            target_col: Column name for target (output) text in the dataframe.
-        """
-        self.tokenizer = tokenizer
-        self.data = dataframe
-        self.source_len = source_len
-        self.target_len = target_len
-        self.source_text = self.data[source_col]
-        self.target_text = self.data[target_col]
-
-    def __len__(self):
-        """Return the number of examples in the dataset."""
-        return len(self.target_text)
-
-    def __getitem__(self, index):
-        """Tokenize and return a single source-target pair.
-
-        Args:
-            index: Index of the example to retrieve.
-
-        Returns:
-            A dictionary containing:
-                - source_ids: Tokenized source input IDs of shape (source_len,).
-                - source_mask: Source attention mask of shape (source_len,).
-                - target_ids: Tokenized target input IDs of shape (target_len,).
-        """
-        source_text = str(self.source_text[index])
-        target_text = str(self.target_text[index])
-
-        source = self.tokenizer(
-            source_text,
-            max_length=self.source_len,
-            truncation=True,
-            padding="max_length",
-            return_tensors="pt",
-        )
-
-        target = self.tokenizer(
-            target_text,
-            max_length=self.target_len,
-            truncation=True,
-            padding="max_length",
-            return_tensors="pt",
-        )
-
-        return {
-            "source_ids": source["input_ids"].squeeze(),
-            "source_mask": source["attention_mask"].squeeze(),
-            "target_ids": target["input_ids"].squeeze(),
-        }
-        
 
 @pytest.fixture
 def tokenizer():
-    """
-    T5ForConditionalGeneration
-    Tokenizer
-    """
-    return T5Tokenizer.from_pretrained("t5-base")
+    return T5Tokenizer.from_pretrained(MODEL_NAME)
+
+
+@pytest.fixture
+def custom_dataset(temp_reuters_headlines, tokenizer):
+    df = load_data(file_path=temp_reuters_headlines)
+    return CustomDataset(
+        dataframe=df,
+        tokenizer=tokenizer,
+        source_len=SOURCE_LENGTH,
+        target_len=TARGET_LENGTH,
+        source_col="Description",
+        target_col="Headlines",
+    )
+
 
 
 class TestCustomDataset:
-    """Test custom dataset"""
-    def test_attributes(self, temp_reuters_headlines, tokenizer):
-        """Test attributes"""
-        df = pd.read_csv(temp_reuters_headlines, delimiter=",")
-        df.drop('Time', inplace=True, axis=1)
-        df.drop_duplicates(inplace=True)
-        df.fillna("", inplace=True)
-        
-        custom_dataset = CustomDataset(
-            dataframe=df,
-            tokenizer=tokenizer,
-            source_len=int(128),
-            target_len=int(32),
-            source_col='Description',
-            target_col='Headlines'
-        )
-        
+    """test custom dataset"""
+    def test_attributes(self, custom_dataset):
+        """test attributes from custom dataset."""
+        assert isinstance(custom_dataset, CustomDataset)
+        assert custom_dataset.source_len == 128
+        assert custom_dataset.target_len == 32
+        assert hasattr(custom_dataset, "tokenizer")
+        assert hasattr(custom_dataset, "data")
         assert hasattr(custom_dataset, "source_text")
         assert hasattr(custom_dataset, "target_text")
-        assert isinstance(custom_dataset, Dataset)
-        assert isinstance(custom_dataset.tokenizer, T5Tokenizer)
+        
+    def test_len(self, custom_dataset):
+        assert len(custom_dataset) > 0
+        
+    def test_getitem_key(self, custom_dataset):
+        sample = custom_dataset[0]
+        
+        assert sample["source_ids"].shape == (SOURCE_LENGTH,)
+        assert sample["source_mask"].shape == (SOURCE_LENGTH,)
+        assert sample['target_ids'].shape == (TARGET_LENGTH,)
+        assert sample['target_ids'].shape == (TARGET_LENGTH,)
+        
+        assert "source_ids" in sample
+        assert "target_ids" in sample
+        assert "target_ids" in sample
+        
+        
+        

@@ -3,14 +3,10 @@ from torch.utils.data import Dataset
 
 class CustomDataset(Dataset):
     """Custom Dataset for fine-tuning gpt-2"""
-    def __init__(self, Description, tokenizer, max_length=512):
+    def __init__(self, Description, tokenizer, max_length=128):
         self.Description = Description
         self.tokenizer = tokenizer
         self.max_length = max_length
-        self.tokenizer.add_special_tokens({
-        "pad_token": "<|pad|>",
-        "bos_token": "<|startoftext|>",
-        })
             
 
     def __len__(self):
@@ -25,6 +21,7 @@ class CustomDataset(Dataset):
             batch,
             padding="longest",
             return_tensors="pt",
-            truncation=True
+            truncation=True,
+            max_length=self.max_length
         )
         return inputs

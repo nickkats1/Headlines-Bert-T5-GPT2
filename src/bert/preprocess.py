@@ -1,40 +1,42 @@
 import pandas as pd
 
 
-
-# --- load data from file path
-
 def load_data(file_path: str) -> pd.DataFrame:
-    """returns CSV file as pd.DataFrame.
-    
+    """Load a CSV file into a pandas DataFrame.
+
     Args:
-        file_path: path of CSV file.
-    
+        file_path: Path to the CSV file.
+
     Returns:
-        pd.Dataframe: A dataframe containing CSV contents.
-        
+        A DataFrame containing CSV contents.
+
     Raises:
-        - FileNotFoundError:
-            - Raised if file does not exits in file path
+        FileNotFoundError: If file_path is None.
     """
     if file_path is None:
-        raise FileNotFoundError("Could Not find file in path")
+        raise FileNotFoundError("Could not find file path.")
+
     return pd.read_csv(file_path, delimiter=",")
 
 
-
-
-# --- clean dataframe ---
-
 def clean_data(dataframe: pd.DataFrame) -> pd.DataFrame:
-    """Clean dataframe and return Headlines column only.
-    
+    """Clean raw BERT dataframe.
+
+    Steps:
+        1. Remove optional 'Time' column if present.
+        2. Drop duplicate rows.
+
     Args:
-        dataframe: Dataframe containing 'Headlines' column.
-        
+        dataframe: Input DataFrame.
+
     Returns:
-        dataframe: A dataframe with no duplicated values containing only 'Headlines' column
+        A cleaned copy of the DataFrame.
     """
-    dataframe.drop('Time', axis=1, inplace=True)
-    dataframe.drop_duplicates(inplace=True)
-    return dataframe
+    cleaned = dataframe.copy()
+
+    if "Time" in cleaned.columns:
+        cleaned = cleaned.drop(columns=["Time"])
+
+    cleaned = cleaned.drop_duplicates()
+
+    return cleaned

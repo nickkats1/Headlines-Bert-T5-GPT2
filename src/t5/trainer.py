@@ -46,8 +46,6 @@ def train(epoch, tokenizer, model, device, loader, optimizer):
 def validate(tokenizer, model, device, loader):
     """Generates predictions on a validation or test set.
 
-    Uses beam search to generate text from source inputs, then decodes
-    both predictions and targets back to strings.
 
     Args:
         tokenizer: T5Tokenizer for decoding generated IDs.

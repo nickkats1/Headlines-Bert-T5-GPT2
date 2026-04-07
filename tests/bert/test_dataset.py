@@ -50,8 +50,7 @@ class TestCustomDataset:
         
     def test_stores_max_length(self, sample_dataset):
         """test max length is attribute"""
-        assert sample_dataset.max_length == int(32)
-        
+        assert sample_dataset.max_length == 32
     
     def test_len(self, sample_dataset, tokenizer):
         """Test to see if length of 0 is returned when no dataset is found"""

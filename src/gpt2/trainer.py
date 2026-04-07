@@ -3,7 +3,7 @@ import torch.nn as nn
 import numpy as np
 
 
-def train_epoch(epochs, model, device, loader, optimizer, scheduler=None):
+def train(epochs, model, device, loader, optimizer, scheduler=None):
     """Runs training across all epochs.
 
     Args:
@@ -54,7 +54,7 @@ def train_epoch(epochs, model, device, loader, optimizer, scheduler=None):
     return avg_loss, perplexity
 
 
-def eval_epoch(model, device, loader):
+def validate(model, device, loader):
     """Evaluates the model on a validation or test set.
 
     Args:

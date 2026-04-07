@@ -1,6 +1,6 @@
 import pandas as pd
 from textblob import TextBlob
-from torch.utils.data import DataLoader
+
 
 def polarity(text: str) -> float:
     """polarity score applied to selected test column

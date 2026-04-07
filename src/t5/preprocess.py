@@ -20,4 +20,4 @@ def load_data(file_path: str) -> pd.DataFrame:
         df.drop_duplicates(inplace=True)
         return df
     else:
-        FileNotFoundError("Could not find file path")
+        raise FileNotFoundError("Could not find file path")

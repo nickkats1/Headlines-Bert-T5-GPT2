@@ -10,7 +10,7 @@ class TestConfig:
     
     def test_epochs(self):
         """test if epochs are in config"""
-        assert config.EPOCHS == int(3)
+        assert config.EPOCHS == 3
     
     def test_device(self):
         """Test that device is in config"""
@@ -18,7 +18,7 @@ class TestConfig:
         
     def test_learning_rate(self):
         """test learning rate is in config"""
-        assert config.LEARNING_RATE == float(5e-5)
+        assert config.LEARNING_RATE == 5e-5
  
     
 
