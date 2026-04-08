@@ -1,4 +1,4 @@
-# Rutgers-Bert-T5-GPT2
+# Headlines-Bert-T5-GPT2
 
 This repository contains the code and resources for the Rutgers-Bert-T5-GPT2 project, which focuses on natural language processing (NLP) tasks using a combination of BERT, T5, and GPT-2 models. The project aims to leverage the strengths of these models to improve performance on various NLP tasks such as text classification, summarization, and language generation.
 
