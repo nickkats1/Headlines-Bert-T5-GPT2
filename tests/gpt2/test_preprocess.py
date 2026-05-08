@@ -1,8 +1,6 @@
-import pytest
 import pandas as pd
 
 from src.gpt2.preprocess import load_data
-
 
 
 class TestPreprocess:
@@ -16,13 +14,3 @@ class TestPreprocess:
         assert "Description" in df.columns
         assert "Time" not in df.columns
         assert "Headlines" not in df.columns
-
-    
-
-        
-        
-        
-        
-
-    
-    

@@ -1,7 +1,11 @@
+from __future__ import annotations
+
+from pathlib import Path
+
 import pandas as pd
 
 
-def load_data(file_path: str) -> pd.DataFrame:
+def load_data(file_path: str | Path | None) -> pd.DataFrame:
     """Load a CSV file into a pandas DataFrame.
 
     Args:
@@ -11,12 +15,16 @@ def load_data(file_path: str) -> pd.DataFrame:
         A DataFrame containing CSV contents.
 
     Raises:
-        FileNotFoundError: If file_path is None.
+        FileNotFoundError: If file_path is None or does not exist.
     """
     if file_path is None:
-        raise FileNotFoundError("Could not find file path.")
+        raise FileNotFoundError("file_path must not be None.")
 
-    return pd.read_csv(file_path, delimiter=",")
+    path = Path(file_path)
+    if not path.is_file():
+        raise FileNotFoundError(f"CSV file not found: {path}")
+
+    return pd.read_csv(path, delimiter=",")
 
 
 def clean_data(dataframe: pd.DataFrame) -> pd.DataFrame:
@@ -24,19 +32,23 @@ def clean_data(dataframe: pd.DataFrame) -> pd.DataFrame:
 
     Steps:
         1. Remove optional 'Time' column if present.
-        2. Drop duplicate rows.
+        2. Drop rows missing the 'Headlines' column value.
+        3. Drop duplicate rows.
 
     Args:
         dataframe: Input DataFrame.
 
     Returns:
-        A cleaned copy of the DataFrame.
+        A cleaned copy of the DataFrame with a fresh 0..N-1 index.
     """
     cleaned = dataframe.copy()
 
     if "Time" in cleaned.columns:
         cleaned = cleaned.drop(columns=["Time"])
 
-    cleaned = cleaned.drop_duplicates()
+    if "Headlines" in cleaned.columns:
+        cleaned = cleaned.dropna(subset=["Headlines"])
+
+    cleaned = cleaned.drop_duplicates().reset_index(drop=True)
 
     return cleaned

@@ -1,12 +1,43 @@
-MODEL_NAME: str = "bert-base-uncased"
-EPOCHS: int = 4
-LEARNING_RATE: float = 2e-5
-DATA_PATH: str = "data/guardian_headlines.csv"
-MAX_LENGTH: int = 80
-BATCH_SIZE: int = 12
-DEVICE: str = "cuda"
-HOLDOUT_SIZE: float = 0.50
-TEST_SIZE_FROM_HOLDOUT: float = 0.20
-SEED: int = 42
+"""Configuration for the BERT sentiment-classification pipeline."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
 
 
+@dataclass(frozen=True)
+class BertConfig:
+    """Hyperparameters for the BERT sentiment-classification pipeline.
+
+    Attributes:
+        model_name: HuggingFace model identifier.
+        data_path: Path (relative to repo root) to the input CSV.
+        epochs: Number of training epochs.
+        learning_rate: Adam learning rate.
+        max_length: Token length for padding/truncation.
+        batch_size: Mini-batch size.
+        device: Preferred device string (resolved at runtime).
+        holdout_size: Fraction of the dataset reserved for val + test.
+        test_size_from_holdout: Fraction of the holdout used for the test set.
+        seed: RNG seed for reproducibility.
+        num_classes: Number of sentiment classes.
+        dropout: Dropout probability before the classification head.
+        hidden_dim: BERT pooled-output dimensionality.
+    """
+
+    model_name: str = "bert-base-uncased"
+    data_path: str = "data/guardian_headlines.csv"
+    epochs: int = 4
+    learning_rate: float = 2e-5
+    max_length: int = 80
+    batch_size: int = 12
+    device: str = "cuda"
+    holdout_size: float = 0.50
+    test_size_from_holdout: float = 0.20
+    seed: int = 42
+    num_classes: int = 3
+    dropout: float = 0.3
+    hidden_dim: int = 768
+
+
+CONFIG = BertConfig()

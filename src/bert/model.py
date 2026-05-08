@@ -1,41 +1,41 @@
+from __future__ import annotations
+
+import torch
 import torch.nn as nn
 from transformers import BertModel
 
+from src.bert.config import CONFIG
 
 
 class BertClassifier(nn.Module):
-    """BERT model with a dropout and linear classification head.
+    """BERT with a dropout and linear classification head.
 
     Architecture:
-        BERT base (768 hidden dim) -> Dropout(0.3) -> Linear(768, 3)
-
-    Attributes:
-        bert: Pretrained BERT model loaded from config.
-        drop: Dropout layer for regularization.
-        out: Linear layer mapping BERT pooled output to 3 sentiment classes.
+        BERT base (HIDDEN_DIM) -> Dropout(DROPOUT) -> Linear(HIDDEN_DIM, NUM_CLASSES)
     """
 
-    def __init__(self):
-        """Initialize the BERT classifier with pretrained weights, dropout, and linear head."""
-        super(BertClassifier, self).__init__()
-        self.bert = BertModel.from_pretrained('bert-base-uncased')
-        self.drop = nn.Dropout(p=0.3)
-        self.out = nn.Linear(768, 3)
+    def __init__(
+        self,
+        model_name: str = CONFIG.model_name,
+        num_classes: int = CONFIG.num_classes,
+        dropout: float = CONFIG.dropout,
+        hidden_dim: int = CONFIG.hidden_dim,
+    ) -> None:
+        super().__init__()
+        self.bert = BertModel.from_pretrained(model_name)
+        self.drop = nn.Dropout(p=dropout)
+        self.out = nn.Linear(hidden_dim, num_classes)
 
-    def forward(self, input_ids, attention_mask):
-        """Forward pass through BERT and classification head.
+    def forward(self, input_ids: torch.Tensor, attention_mask: torch.Tensor) -> torch.Tensor:
+        """Forward pass.
 
         Args:
-            input_ids: Tokenized input IDs of shape (batch_size, seq_len).
-            attention_mask: Attention mask of shape (batch_size, seq_len).
+            input_ids: (batch_size, seq_len) token IDs.
+            attention_mask: (batch_size, seq_len) attention mask.
 
         Returns:
-            Logits of shape (batch_size, 3).
+            Logits of shape (batch_size, num_classes).
         """
-        outputs = self.bert(
-            input_ids=input_ids,
-            attention_mask=attention_mask
-        )
+        outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask)
         pooled_output = outputs.pooler_output
-        output = self.drop(pooled_output)
-        return self.out(output)
+        return self.out(self.drop(pooled_output))

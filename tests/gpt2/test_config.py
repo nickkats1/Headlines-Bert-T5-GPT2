@@ -1,26 +1,31 @@
-from src.gpt2 import config
+"""Tests for ``src.gpt2.config``."""
+
+from __future__ import annotations
+
+from src.gpt2.config import CONFIG, GPT2Config
 
 
+class TestGPT2Config:
+    """Validate the default ``GPT2Config`` values."""
 
-class TestConfig:
-    """Test GPT2 Config"""
+    def test_is_dataclass_instance(self):
+        assert isinstance(CONFIG, GPT2Config)
+
     def test_model_name(self):
-        """Test model name is in config"""
-        assert config.MODEL_NAME == "gpt2"
-    
+        assert CONFIG.model_name == "gpt2"
+
     def test_epochs(self):
-        """test if epochs are in config"""
-        assert config.EPOCHS == 3
-    
+        assert CONFIG.epochs == 3
+
     def test_device(self):
-        """Test that device is in config"""
-        assert config.DEVICE == "cuda"
-        
+        assert CONFIG.device == "cuda"
+
     def test_learning_rate(self):
-        """test learning rate is in config"""
-        assert config.LEARNING_RATE == 5e-5
- 
-    
+        assert CONFIG.learning_rate == 5e-5
 
+    def test_output_dir_under_src(self):
+        """OUTPUT_DIR must be under src/, not bare gpt2/."""
+        assert CONFIG.output_dir.startswith("src/")
 
-
+    def test_special_tokens(self):
+        assert CONFIG.pad_token and CONFIG.bos_token and CONFIG.eos_token

@@ -1,57 +1,77 @@
+"""PyTorch ``Dataset`` for T5 source-to-target text pair training."""
+
+from __future__ import annotations
+
+from typing import Any
+
+import pandas as pd
 from torch.utils.data import Dataset
 
-class CustomDataset(Dataset):
-    """Dataset that tokenizes source-target text pairs for T5.
 
-    Takes a dataframe with source and target text columns, tokenizes both
-    using the provided T5 tokenizer, and returns padded/truncated tensors
-    ready for encoder-decoder training.
+class CustomDataset(Dataset):
+    """Tokenizes source-target text pairs for T5 fine-tuning.
 
     Attributes:
         tokenizer: HuggingFace T5 tokenizer.
-        data: Pandas DataFrame containing source and target text.
-        source_len: Maximum token length for source (encoder) sequences.
-        target_len: Maximum token length for target (decoder) sequences.
+        data: DataFrame containing source and target text columns.
+        source_len: Maximum token length for source sequences.
+        target_len: Maximum token length for target sequences.
         source_text: Series of source text strings.
         target_text: Series of target text strings.
     """
 
-    def __init__(self, dataframe, tokenizer, source_len, target_len, source_col, target_col):
-        """Initialize the dataset with a dataframe and tokenizer.
+    def __init__(
+        self,
+        dataframe: pd.DataFrame,
+        tokenizer: Any,
+        source_len: int,
+        target_len: int,
+        source_col: str,
+        target_col: str,
+    ) -> None:
+        """Initialize the dataset.
 
         Args:
-            dataframe: Pandas DataFrame containing the text data.
-            tokenizer: HuggingFace T5 tokenizer for encoding text.
+            dataframe: DataFrame containing both source and target columns.
+            tokenizer: HuggingFace T5 tokenizer.
             source_len: Maximum token length for source sequences.
             target_len: Maximum token length for target sequences.
-            source_col: Column name for source (input) text in the dataframe.
-            target_col: Column name for target (output) text in the dataframe.
+            source_col: Column name for the source (input) text.
+            target_col: Column name for the target (output) text.
+
+        Raises:
+            KeyError: If ``source_col`` or ``target_col`` is missing.
         """
+        for col in (source_col, target_col):
+            if col not in dataframe.columns:
+                raise KeyError(f"Column {col!r} missing from DataFrame.")
+
         self.tokenizer = tokenizer
-        self.data = dataframe
+        self.data = dataframe.reset_index(drop=True)
         self.source_len = source_len
         self.target_len = target_len
         self.source_text = self.data[source_col]
         self.target_text = self.data[target_col]
 
-    def __len__(self):
-        """Return the number of examples in the dataset."""
+    def __len__(self) -> int:
+        """Return the number of examples."""
         return len(self.target_text)
 
-    def __getitem__(self, index):
-        """Tokenize and return a single source-target pair.
+    def __getitem__(self, index: int) -> dict[str, Any]:
+        """Tokenize and return the source-target pair at ``index``.
 
         Args:
-            index: Index of the example to retrieve.
+            index: Integer index of the example.
 
         Returns:
-            A dictionary containing:
-                - source_ids: Tokenized source input IDs of shape (source_len,).
-                - source_mask: Source attention mask of shape (source_len,).
-                - target_ids: Tokenized target input IDs of shape (target_len,).
+            A dict with:
+
+            - ``source_ids``: 1-D long tensor of length ``source_len``.
+            - ``source_mask``: 1-D attention mask of length ``source_len``.
+            - ``target_ids``: 1-D long tensor of length ``target_len``.
         """
-        source_text = str(self.source_text[index])
-        target_text = str(self.target_text[index])
+        source_text = str(self.source_text.iloc[index])
+        target_text = str(self.target_text.iloc[index])
 
         source = self.tokenizer(
             source_text,
@@ -60,7 +80,6 @@ class CustomDataset(Dataset):
             padding="max_length",
             return_tensors="pt",
         )
-
         target = self.tokenizer(
             target_text,
             max_length=self.target_len,
@@ -70,7 +89,7 @@ class CustomDataset(Dataset):
         )
 
         return {
-            "source_ids": source["input_ids"].squeeze(),
-            "source_mask": source["attention_mask"].squeeze(),
-            "target_ids": target["input_ids"].squeeze(),
+            "source_ids": source["input_ids"].squeeze(0),
+            "source_mask": source["attention_mask"].squeeze(0),
+            "target_ids": target["input_ids"].squeeze(0),
         }

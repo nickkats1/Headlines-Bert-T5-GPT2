@@ -1,23 +1,36 @@
+from __future__ import annotations
+
+from pathlib import Path
+
 import pandas as pd
 
-def load_data(file_path: str) -> pd.DataFrame:
-    """Load CSV file and return pd.DataFrame.
-    
+
+def load_data(file_path: str | Path | None) -> pd.DataFrame:
+    """Load Reuters CSV with both 'Headlines' and 'Description' columns.
+
+    Drops the 'Time' column, fills NaNs with empty strings, de-duplicates,
+    and resets the index so callers can use positional indexing.
+
     Args:
-        file_path: path where CSV file is located.
-    
+        file_path: Path to the CSV file.
+
     Returns:
-        pd.DataFrame: A dataframe containing both Headlines and Description columns
-    
+        DataFrame with at least 'Headlines' and 'Description' columns.
+
     Raises:
-        FileNotFoundError:
-        - Raised if file path does not exits
+        FileNotFoundError: If file_path is None or does not exist.
     """
-    if file_path is not None:
-        df = pd.read_csv(file_path, delimiter=",")
-        df.drop("Time", axis=1, inplace=True)
-        df.fillna("", inplace=True)
-        df.drop_duplicates(inplace=True)
-        return df
-    else:
-        raise FileNotFoundError("Could not find file path")
+    if file_path is None:
+        raise FileNotFoundError("file_path must not be None.")
+
+    path = Path(file_path)
+    if not path.is_file():
+        raise FileNotFoundError(f"CSV file not found: {path}")
+
+    df = pd.read_csv(path, delimiter=",")
+
+    if "Time" in df.columns:
+        df = df.drop(columns=["Time"])
+
+    df = df.fillna("").drop_duplicates().reset_index(drop=True)
+    return df

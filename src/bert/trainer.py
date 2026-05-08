@@ -1,82 +1,106 @@
+"""Training and validation loops for the BERT classifier."""
+
+from __future__ import annotations
+
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
 
 
-def train(model, dataloader, loss_fn, optimizer, device, n_examples, scheduler=None):
-    """Run a single training epoch over the entire dataloader.
+def train(
+    model: nn.Module,
+    loader,
+    optimizer,
+    device,
+    *,
+    loss_fn,
+    n_examples: int,
+    scheduler=None,
+    max_grad_norm: float = 1.0,
+) -> tuple[float, float]:
+    """Run a single training epoch.
 
     Args:
-        model: The BERT classifier model.
-        dataloader: PyTorch DataLoader containing training batches.
-        loss_fn: Loss function (e.g., CrossEntropyLoss).
-        optimizer: Optimizer (e.g., Adam, AdamW).
-        device: Device to run training on ('cuda' or 'cpu').
-        n_examples: Total number of training examples (for accuracy calculation).
+        model: BERT classifier.
+        loader: Training DataLoader.
+        optimizer: Optimizer instance.
+        device: Torch device.
+        loss_fn: Classification loss function (e.g., ``nn.CrossEntropyLoss``).
+        n_examples: Total number of training examples (for accuracy).
+        scheduler: Optional LR scheduler stepped per batch.
+        max_grad_norm: Max gradient norm for clipping.
 
     Returns:
-        A tuple of (accuracy, mean_loss) for the epoch.
+        Tuple ``(accuracy, mean_loss)``.
     """
     model.train()
+    losses: list[float] = []
+    correct = 0
 
-    losses = []
-    predictions = 0
-
-    for batch in dataloader:
+    for batch in loader:
         input_ids = batch["input_ids"].to(device)
         attention_mask = batch["attention_mask"].to(device)
         targets = batch["targets"].to(device)
 
-        outputs = model(
-            input_ids=input_ids,
-            attention_mask=attention_mask,
-        )
-
-        _, preds = torch.max(outputs, dim=1)
+        outputs = model(input_ids=input_ids, attention_mask=attention_mask)
+        preds = torch.argmax(outputs, dim=1)
         loss = loss_fn(outputs, targets)
 
-        predictions += torch.sum(preds == targets)
+        correct += int(torch.sum(preds == targets).item())
         losses.append(loss.item())
-        
+
         optimizer.zero_grad()
         loss.backward()
-        nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+        nn.utils.clip_grad_norm_(model.parameters(), max_norm=max_grad_norm)
         optimizer.step()
-        scheduler.step()
+        if scheduler is not None:
+            scheduler.step()
 
-
-
-    accuracy = predictions.double() / n_examples
-    mean_loss = np.mean(losses)
-
+    accuracy = correct / n_examples if n_examples else 0.0
+    mean_loss = float(np.mean(losses)) if losses else 0.0
     return accuracy, mean_loss
 
 
-def validate(model, dataloader, loss_fn, device, n_examples):
-    """Evaluate the model on a validation or test set."""
-    model.eval()
+def validate(
+    model: nn.Module,
+    loader,
+    optimizer=None,
+    device=None,
+    *,
+    loss_fn,
+    n_examples: int,
+) -> tuple[float, float]:
+    """Evaluate the model on a validation or test set.
 
-    losses = []
-    predictions = 0
+    Args:
+        model: BERT classifier.
+        loader: Validation or test DataLoader.
+        optimizer: Unused; accepted for trainer signature symmetry.
+        device: Torch device.
+        loss_fn: Classification loss function.
+        n_examples: Total number of evaluation examples.
+
+    Returns:
+        Tuple ``(accuracy, mean_loss)``.
+    """
+    del optimizer
+    model.eval()
+    losses: list[float] = []
+    correct = 0
 
     with torch.no_grad():
-        for batch in dataloader:
+        for batch in loader:
             input_ids = batch["input_ids"].to(device)
             attention_mask = batch["attention_mask"].to(device)
             targets = batch["targets"].to(device)
 
-            outputs = model(
-                input_ids=input_ids,
-                attention_mask=attention_mask,
-            )
-
-            _, preds = torch.max(outputs, dim=1)
+            outputs = model(input_ids=input_ids, attention_mask=attention_mask)
+            preds = torch.argmax(outputs, dim=1)
             loss = loss_fn(outputs, targets)
 
-            predictions += torch.sum(preds == targets).item()
+            correct += int(torch.sum(preds == targets).item())
             losses.append(loss.item())
 
-    accuracy = predictions.double() / n_examples
-    mean_loss = np.mean(losses)
-
+    accuracy = correct / n_examples if n_examples else 0.0
+    mean_loss = float(np.mean(losses)) if losses else 0.0
     return accuracy, mean_loss

@@ -1,57 +1,78 @@
+"""ROUGE evaluation and prediction-saving helpers for the T5 pipeline."""
+
+from __future__ import annotations
+
+from collections.abc import Sequence
+from pathlib import Path
+
 import pandas as pd
 from rouge_score import rouge_scorer
 
+ROUGE_KEYS = ("rouge1", "rouge2", "rougeL")
 
-def compute_rouge(predictions, actuals):
-    """Computes ROUGE-1, ROUGE-2, and ROUGE-L scores.
+
+def compute_rouge(predictions: Sequence[str], actuals: Sequence[str]) -> dict[str, float]:
+    """Compute average ROUGE-1/2/L F1 over prediction-reference pairs.
 
     Args:
-        predictions: List of generated headline strings.
-        actuals: List of actual headline strings.
+        predictions: Generated headline strings.
+        actuals: Ground-truth headline strings.
 
     Returns:
-        Dictionary with average ROUGE-1, ROUGE-2, and ROUGE-L F1 scores.
+        Mapping ``{"rouge1": ..., "rouge2": ..., "rougeL": ...}`` of average
+        F1 scores, all zero when ``predictions`` is empty.
+
+    Raises:
+        ValueError: If ``predictions`` and ``actuals`` differ in length.
     """
-    scorer = rouge_scorer.RougeScorer(["rouge1", "rouge2", "rougeL"], use_stemmer=True)
+    if len(predictions) != len(actuals):
+        raise ValueError(
+            f"predictions ({len(predictions)}) and actuals ({len(actuals)}) "
+            f"must have the same length."
+        )
 
     n = len(predictions)
     if n == 0:
-        return {"rouge1": 0.0, "rouge2": 0.0, "rougeL": 0.0}
+        return dict.fromkeys(ROUGE_KEYS, 0.0)
 
-    rouge1, rouge2, rougeL = 0, 0, 0
+    scorer = rouge_scorer.RougeScorer(list(ROUGE_KEYS), use_stemmer=True)
+    totals = dict.fromkeys(ROUGE_KEYS, 0.0)
 
-    for pred, actual in zip(predictions, actuals):
-        scores = scorer.score(actual, pred)
-        rouge1 += scores["rouge1"].fmeasure
-        rouge2 += scores["rouge2"].fmeasure
-        rougeL += scores["rougeL"].fmeasure
+    for pred, actual in zip(predictions, actuals, strict=True):
+        scores = scorer.score(str(actual), str(pred))
+        for key in ROUGE_KEYS:
+            totals[key] += scores[key].fmeasure
 
-    results = {
-        "rouge1": rouge1 / n,
-        "rouge2": rouge2 / n,
-        "rougeL": rougeL / n,
-    }
-
-    print(f"  ROUGE-1: {results['rouge1']:.4f}")
-    print(f"  ROUGE-2: {results['rouge2']:.4f}")
-    print(f"  ROUGE-L: {results['rougeL']:.4f}")
-
+    results = {key: totals[key] / n for key in ROUGE_KEYS}
+    print("  " + " | ".join(f"{key.upper()}: {results[key]:.4f}" for key in ROUGE_KEYS))
     return results
 
 
-def save_predictions(predictions, actuals, path="predictions.csv"):
-    """Saves generated vs actual headlines to CSV.
+def save_predictions(
+    predictions: Sequence[str],
+    actuals: Sequence[str],
+    path: str | Path = "predictions.csv",
+) -> Path:
+    """Save generated and reference texts side-by-side to a CSV file.
 
     Args:
-        predictions: List of generated headline strings.
-        actuals: List of actual headline strings.
-        path: Output CSV path.
+        predictions: Generated text strings.
+        actuals: Ground-truth text strings.
+        path: Destination CSV path.
+
+    Returns:
+        The resolved ``Path`` written to.
+
+    Raises:
+        ValueError: If ``predictions`` and ``actuals`` differ in length.
     """
-    df = pd.DataFrame(
-        {
-            "Generated Text": predictions,
-            "Actual Text": actuals,
-        }
+    if len(predictions) != len(actuals):
+        raise ValueError("predictions and actuals must have the same length.")
+
+    out_path = Path(path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame({"Generated Text": list(predictions), "Actual Text": list(actuals)}).to_csv(
+        out_path, index=False
     )
-    df.to_csv(path, index=False)
-    print(f"  Predictions saved to {path}")
+    print(f"  Predictions saved to {out_path}")
+    return out_path

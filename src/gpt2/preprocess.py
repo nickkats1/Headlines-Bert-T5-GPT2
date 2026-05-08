@@ -1,21 +1,40 @@
+from __future__ import annotations
+
+from pathlib import Path
+
 import pandas as pd
 
 
-def load_data(file_path: str) -> pd.DataFrame:
-    """Load data from file path and return string
-    consisting of 'Descriptions' text data.
+def load_data(file_path: str | Path | None) -> pd.DataFrame:
+    """Load Reuters CSV and return only the 'Description' column.
+
+    Drops the 'Time' and 'Headlines' columns (if present), removes rows with
+    missing descriptions, and de-duplicates.
 
     Args:
-        file_path: path of CSV file for ingestion.
+        file_path: Path to the CSV file.
 
     Returns:
-        Description: pd.DataFrame consisting of descriptions from
-        rutgers headlines
+        DataFrame with a single 'Description' column.
+
+    Raises:
+        FileNotFoundError: If file_path is None or does not exist.
     """
-    if file_path is not None:
-        dataframe = pd.read_csv(file_path, delimiter=",")
-        dataframe.drop(['Time', 'Headlines'], inplace=True, axis=1)
-        dataframe.drop_duplicates(inplace=True)
-        return dataframe
-    else:
-        raise FileNotFoundError("Could Not find file path")
+    if file_path is None:
+        raise FileNotFoundError("file_path must not be None.")
+
+    path = Path(file_path)
+    if not path.is_file():
+        raise FileNotFoundError(f"CSV file not found: {path}")
+
+    dataframe = pd.read_csv(path, delimiter=",")
+
+    columns_to_drop = [c for c in ("Time", "Headlines") if c in dataframe.columns]
+    if columns_to_drop:
+        dataframe = dataframe.drop(columns=columns_to_drop)
+
+    if "Description" in dataframe.columns:
+        dataframe = dataframe.dropna(subset=["Description"])
+
+    dataframe = dataframe.drop_duplicates().reset_index(drop=True)
+    return dataframe

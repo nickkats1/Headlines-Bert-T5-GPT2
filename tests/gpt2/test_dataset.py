@@ -1,19 +1,24 @@
+"""Tests for ``src.gpt2.dataset`` and ``src.gpt2.utils``."""
+
+from __future__ import annotations
+
 import pytest
 from transformers import GPT2Tokenizer
-from src.gpt2.preprocess import load_data
+
+from src.gpt2.config import CONFIG
 from src.gpt2.dataset import CustomDataset
-from src.gpt2.config import MODEL_NAME
-from src.gpt2.utils import split_data, build_dataloaders
+from src.gpt2.preprocess import load_data
+from src.gpt2.utils import build_dataloaders, split_data
 
 
 @pytest.fixture
 def tokenizer():
-    tok = GPT2Tokenizer.from_pretrained(MODEL_NAME)
+    tok = GPT2Tokenizer.from_pretrained(CONFIG.model_name)
     tok.add_special_tokens(
         {
-            "pad_token": "<|pad|>",
-            "bos_token": "<|startoftext|>",
-            "eos_token": "<|endoftext|>",
+            "pad_token": CONFIG.pad_token,
+            "bos_token": CONFIG.bos_token,
+            "eos_token": CONFIG.eos_token,
         }
     )
     return tok
@@ -52,23 +57,3 @@ class TestCustomDataset:
         assert "attention_mask" in train_batch
         assert "input_ids" in val_batch
         assert "attention_mask" in val_batch
-        
-
-        
-        
-        
-        
-
-
-    
-        
-        
-        
-        
-
-
-
-
-
-
-
